@@ -1,0 +1,8 @@
+var x=true;
+assert x&&x;
+assert x==true&&!x==false;
+assert !(x==false)&&!(x==false)
+// stampa
+// ExpProg(NonEmptyStmtSeq(VarStmt(Variable(x),BoolLiteral(true)),NonEmptyStmtSeq(AssertStmt(And(Variable(x),Variable(x))),NonEmptyStmtSeq(AssertStmt(And(Eq(Variable(x),BoolLiteral(true)),Eq(Not(Variable(x)),BoolLiteral(false)))),NonEmptyStmtSeq(AssertStmt(And(Not(Eq(Variable(x),BoolLiteral(false))),Not(Eq(Variable(x),BoolLiteral(false))))),EmptyStmtSeq)))))
+
+
