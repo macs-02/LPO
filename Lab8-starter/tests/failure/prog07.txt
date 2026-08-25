@@ -1,0 +1,5 @@
+var x=1;
+assert x=1
+// stampa
+// Syntax error: on line 2: Expecting EOF, found ASSIGN('=')
+

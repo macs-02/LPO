@@ -1,0 +1,3 @@
+assert = 2
+// stampa
+// Syntax error: on line 1: Unexpected token ASSIGN ('=')
