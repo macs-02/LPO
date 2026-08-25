@@ -1,8 +1,0 @@
-var x=1;
-x=x+1;
-var y=true;
-y=y&&false;
-assert x==2 && !y
-// stampa
-// ExpProg(NonEmptyStmtSeq(VarStmt(Variable(x),IntLiteral(1)),NonEmptyStmtSeq(AssignStmt(Variable(x),Add(Variable(x),IntLiteral(1))),NonEmptyStmtSeq(VarStmt(Variable(y),BoolLiteral(true)),NonEmptyStmtSeq(AssignStmt(Variable(y),And(Variable(y),BoolLiteral(false))),NonEmptyStmtSeq(AssertStmt(And(Eq(Variable(x),IntLiteral(2)),Not(Variable(y)))),EmptyStmtSeq))))))
-

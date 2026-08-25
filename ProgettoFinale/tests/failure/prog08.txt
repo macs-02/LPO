@@ -1,3 +1,0 @@
-else = 3;
-// stampa
-// Syntax error: on line 1: Unexpected token ELSE ('else')

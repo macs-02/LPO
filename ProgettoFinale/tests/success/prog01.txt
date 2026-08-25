@@ -1,5 +1,0 @@
-var x=!true;
-var y=!x==true;
-var z=!(x==true)
-// stampa
-// ExpProg(NonEmptyStmtSeq(VarStmt(Variable(x),Not(BoolLiteral(true))),NonEmptyStmtSeq(VarStmt(Variable(y),Eq(Not(Variable(x)),BoolLiteral(true))),NonEmptyStmtSeq(VarStmt(Variable(z),Not(Eq(Variable(x),BoolLiteral(true)))),EmptyStmtSeq))))

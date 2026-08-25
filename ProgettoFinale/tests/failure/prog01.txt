@@ -1,3 +1,0 @@
-print 1<=2
-// stampa
-// Syntax error: on line 1 unrecognized token starting at '<=2'

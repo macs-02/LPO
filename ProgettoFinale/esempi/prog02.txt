@@ -1,5 +1,0 @@
-var x_1=2;
-var x_2=4;
-print x_1+2==x_2
-// stampa
-// ExpProg(NonEmptyStmtSeq(VarStmt(Variable(x_1),IntLiteral(2)),NonEmptyStmtSeq(VarStmt(Variable(x_2),IntLiteral(4)),NonEmptyStmtSeq(PrintStmt(Eq(Add(Variable(x_1),IntLiteral(2)),Variable(x_2))),EmptyStmtSeq))))

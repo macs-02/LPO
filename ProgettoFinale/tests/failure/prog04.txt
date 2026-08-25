@@ -1,3 +1,0 @@
-var assert = 1
-// stampa
-// Syntax error: on line 1: Expecting IDENT, found ASSERT('assert')

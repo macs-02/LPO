@@ -1,8 +1,0 @@
-var p1=1,true;
-var p2=false,2;
-var p=p1,p2;
-print snd fst p==false;
-print - snd snd p * -3
-// stampa
-// ExpProg(NonEmptyStmtSeq(VarStmt(Variable(p1),PairLit(IntLiteral(1),BoolLiteral(true))),NonEmptyStmtSeq(VarStmt(Variable(p2),PairLit(BoolLiteral(false),IntLiteral(2))),NonEmptyStmtSeq(VarStmt(Variable(p),PairLit(Variable(p1),Variable(p2))),NonEmptyStmtSeq(PrintStmt(Eq(Snd(Fst(Variable(p))),BoolLiteral(false))),NonEmptyStmtSeq(PrintStmt(Mul(Minus(Snd(Snd(Variable(p)))),Minus(IntLiteral(3)))),EmptyStmtSeq))))))
-
