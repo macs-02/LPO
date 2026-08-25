@@ -1,5 +1,0 @@
-print fst [1] // Static error: Found  INT[], expected PairType[]
-
-
-
-

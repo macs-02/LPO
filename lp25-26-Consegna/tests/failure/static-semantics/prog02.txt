@@ -1,3 +1,0 @@
-print [true]+[2] // Static error: Found BOOL[1], expected INT or INT[]
-
-

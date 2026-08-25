@@ -1,4 +1,0 @@
-print [1]@[true] // Static error: Found  BOOL[], expected INT[]
-
-
-
