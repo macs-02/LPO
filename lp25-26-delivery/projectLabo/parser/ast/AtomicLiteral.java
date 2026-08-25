@@ -1,0 +1,19 @@
+package projectLabo.parser.ast;
+
+public abstract class AtomicLiteral<T> implements Exp {
+
+	protected final T value;
+
+	public AtomicLiteral(T n) {
+		this.value = n;
+	}
+
+	public T getValue() {
+		return value;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%s(%s)", getClass().getSimpleName(), value);
+	}
+}

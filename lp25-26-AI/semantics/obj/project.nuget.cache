@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "mBHti3s4oyI=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Massimo\\Documents\\Università\\LPO\\Progetto finale-20260824\\lp25-26-AI\\semantics\\finalProject.fsproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Massimo\\.nuget\\packages\\fsharp.core\\10.1.400\\fsharp.core.10.1.400.nupkg.sha512"
+  ],
+  "logs": []
+}

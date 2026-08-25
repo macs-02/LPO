@@ -33,11 +33,13 @@ public class Tokenizer implements TokenizerInterface {
 	static { // initialization of the symbol and keyword tables: symbols and keywords are
 		// singleton lexical categories
 
+		symbols.put("&&", AND);
 		symbols.put("=", ASSIGN);
 		symbols.put("}", CLOSE_BLOCK);
 		symbols.put(")", CLOSE_PAR);
 		symbols.put("==", EQ);
 		symbols.put("-", MINUS);
+		symbols.put("!", NOT);
 		symbols.put("{", OPEN_BLOCK);
 		symbols.put("(", OPEN_PAR);
 		symbols.put(",", PAIR_OP);
@@ -45,6 +47,7 @@ public class Tokenizer implements TokenizerInterface {
 		symbols.put(";", STMT_SEP);
 		symbols.put("*", TIMES);
 
+		keywords.put("assert", ASSERT);
 		keywords.put("else", ELSE);
 		keywords.put("false", BOOL);
 		keywords.put("fst", FST);

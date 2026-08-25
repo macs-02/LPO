@@ -10,13 +10,14 @@ import static projectLabo.parser.TokenType.*;
 /*
 Prog ::= StmtSeq EOF
 StmtSeq ::= Stmt (STMT_SEP StmtSeq)?
-Stmt ::= VAR IDENT ASSIGN Exp | PRINT Exp | IF OPEN_PAR Exp CLOSE_PAR Block (ELSE Block)? 
+Stmt ::= VAR? IDENT ASSIGN Exp | PRINT Exp | IF OPEN_PAR Exp CLOSE_PAR Block (ELSE Block)? | ASSERT Exp
 Block ::= OPEN_BLOCK StmtSeq CLOSE_BLOCK
-Exp ::= Eq (PAIR_OP Eq)*
+Exp ::= And (PAIR_OP And)*
+And ::= Eq (AND Eq)*
 Eq ::= Add (EQ Add)*
 Add ::= Mul (PLUS Mul)*
 Mul::= Atom (TIMES Atom)*
-Atom ::= FST Atom | SND Atom | MINUS Atom | BOOL | NUM | IDENT | OPEN_PAR Exp CLOSE_PAR
+Atom ::= FST Atom | SND Atom | MINUS Atom | NOT Atom | BOOL | NUM | IDENT | OPEN_PAR Exp CLOSE_PAR 
 */
 
 public class Parser implements ParserInterface {
@@ -96,14 +97,16 @@ public class Parser implements ParserInterface {
 	}
 
 	/*
-	 * parses a statement Stmt ::= VAR IDENT ASSIGN Exp | PRINT Exp | IF OPEN_PAR
-	 * Exp CLOSE_PAR Block (ELSE Block)?
+	 * parses a statement Stmt ::= VAR? IDENT ASSIGN Exp | PRINT Exp | IF OPEN_PAR
+	 * Exp CLOSE_PAR Block (ELSE Block)? | ASSERT Exp
 	 */
 	private Stmt parseStmt() throws ParserException {
 		return switch (tokenizer.tokenType()) {
 		case PRINT -> parsePrintStmt();
 		case VAR -> parseVarStmt();
 		case IF -> parseIfStmt();
+		case ASSERT -> parseAssertStmt();
+		case IDENT -> parseAssignStmt();
 		default -> unexpectedTokenError();
 		};
 	}
@@ -124,6 +127,23 @@ public class Parser implements ParserInterface {
 		final var var = parseVariable();
 		consume(ASSIGN);
 		return new VarStmt(var, parseExp());
+	}
+
+	/*
+	 * parses the assert statement Stmt ::= ASSERT Exp
+	 */
+	private AssertStmt parseAssertStmt() throws ParserException {
+		consume(ASSERT);
+		return new AssertStmt(parseExp());
+	}
+
+	/*
+	 * parses the simple assignment statement Stmt ::= IDENT ASSIGN Exp
+	 */
+	private AssignStmt parseAssignStmt() throws ParserException {
+		final var var = parseVariable();
+		consume(ASSIGN);
+		return new AssignStmt(var, parseExp());
 	}
 
 	/*
@@ -152,14 +172,27 @@ public class Parser implements ParserInterface {
 
 	/*
 	 * parses expressions, starting from the lowest precedence operator PAIR_OP
-	 * which is left-associative Exp ::= Eq (PAIR_OP Eq)*
+	 * which is left-associative Exp ::= And (PAIR_OP And)*
 	 */
 
 	private Exp parseExp() throws ParserException {
-		var exp = parseEq();
+		var exp = parseAnd();
 		while (tokenizer.tokenType() == PAIR_OP) {
 			tokenizer.next();
-			exp = new PairLit(exp, parseEq());
+			exp = new PairLit(exp, parseAnd());
+		}
+		return exp;
+	}
+
+	/*
+	 * parses expressions, starting from the lowest precedence operator AND which
+	 * is left-associative And ::= Eq (AND Eq)*
+	 */
+	private Exp parseAnd() throws ParserException {
+		var exp = parseEq();
+		while (tokenizer.tokenType() == AND) {
+			tokenizer.next();
+			exp = new And(exp, parseEq());
 		}
 		return exp;
 	}
@@ -205,13 +238,14 @@ public class Parser implements ParserInterface {
 
 	/*
 	 * parses expressions of type Atom Atom ::= FST Atom | SND Atom | MINUS Atom |
-	 * BOOL | NUM | IDENT | OPEN_PAR Exp CLOSE_PAR
+	 * NOT Atom | BOOL | NUM | IDENT | OPEN_PAR Exp CLOSE_PAR
 	 */
 	private Exp parseAtom() throws ParserException {
 		return switch (tokenizer.tokenType()) {
 		case NUM -> parseNum();
 		case IDENT -> parseVariable();
 		case MINUS -> parseMinus();
+		case NOT -> parseNot();
 		case OPEN_PAR -> parseRoundPar();
 		case BOOL -> parseBoolean();
 		case FST -> parseFst();
@@ -251,6 +285,14 @@ public class Parser implements ParserInterface {
 	private Minus parseMinus() throws ParserException {
 		consume(MINUS); // can be omitted if the method is only called by parseAtom()
 		return new Minus(parseAtom());
+	}
+
+	/*
+	 * parses expressions with unary operator NOT Atom ::= NOT Atom
+	 */
+	private Not parseNot() throws ParserException {
+		consume(NOT);
+		return new Not(parseAtom());
 	}
 
 	/*
