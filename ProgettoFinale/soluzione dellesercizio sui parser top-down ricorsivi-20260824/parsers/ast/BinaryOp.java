@@ -1,0 +1,22 @@
+package parsers.ast;
+
+import static java.util.Objects.requireNonNull;
+
+/**
+ * abstract class for the AST of all binary operators
+ */
+public abstract class BinaryOp implements Exp {
+	protected final Exp left;
+	protected final Exp right;
+
+	protected BinaryOp(Exp left, Exp right) {
+		this.left = requireNonNull(left);
+		this.right = requireNonNull(right);
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%s(%s,%s)", getClass().getSimpleName(), left, right);
+	}
+
+}
