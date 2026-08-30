@@ -3,9 +3,38 @@ package projectLabo.visitors;
 import java.util.ArrayList;
 import java.util.List;
 
-import projectLabo.parser.ast.*;
+import projectLabo.parser.ast.Add;
+import projectLabo.parser.ast.And;
+import projectLabo.parser.ast.AssertStmt;
+import projectLabo.parser.ast.AssignStmt;
+import projectLabo.parser.ast.Block;
+import projectLabo.parser.ast.BoolLiteral;
+import projectLabo.parser.ast.Cat;
+import projectLabo.parser.ast.EmptyStmtSeq;
+import projectLabo.parser.ast.Eq;
+import projectLabo.parser.ast.ExpProg;
+import projectLabo.parser.ast.Flatten;
+import projectLabo.parser.ast.ForEachStmt;
+import projectLabo.parser.ast.Fst;
+import projectLabo.parser.ast.IfStmt;
+import projectLabo.parser.ast.IntLiteral;
+import projectLabo.parser.ast.Minus;
+import projectLabo.parser.ast.Mul;
+import projectLabo.parser.ast.NonEmptyStmtSeq;
+import projectLabo.parser.ast.Not;
+import projectLabo.parser.ast.PairLit;
+import projectLabo.parser.ast.PrintStmt;
+import projectLabo.parser.ast.Snd;
+import projectLabo.parser.ast.VarStmt;
+import projectLabo.parser.ast.Variable;
+import projectLabo.parser.ast.Vector;
+import projectLabo.parser.ast.Zip;
 import projectLabo.visitors.environment.Environment;
-import projectLabo.visitors.value.*;
+import projectLabo.visitors.value.BoolValue;
+import projectLabo.visitors.value.IntValue;
+import projectLabo.visitors.value.PairValue;
+import projectLabo.visitors.value.Value;
+import projectLabo.visitors.value.VectorValue;
 
 public class DynamicSemanticsVisitor implements Visitor<Value> {
 
@@ -48,15 +77,15 @@ public class DynamicSemanticsVisitor implements Visitor<Value> {
 
 	@Override
 	public Value visitVarStmt(VarStmt stmt) {
-		var value = stmt.getExp().accept(this);
-		env.declare(stmt.getVar().getName(), value);
+		var statementValue = stmt.getExp().accept(this);
+		env.declare(stmt.getVar().getName(), statementValue);
 		return null;
 	}
 
 	@Override
 	public Value visitAssignStmt(AssignStmt stmt) {
-		var value = stmt.getExp().accept(this);
-		env.update(stmt.getVar().getName(), value);
+		var expectedValue = stmt.getExp().accept(this);
+		env.update(stmt.getVar().getName(), expectedValue);
 		return null;
 	}
 
@@ -91,6 +120,14 @@ public class DynamicSemanticsVisitor implements Visitor<Value> {
 	}
 
 	@Override
+	/**
+	 * viene valutata l'espressione, il cui valore deve essere un vettore [v1,...,vn]... 
+	 * la variabile di iterazione viene dichiarata in un nuovo livello di scope e inizializzata con un 
+	 * valore qualsiasi (per esempio 0)... nel giro i-mo, prima di eseguire il blocco, 
+	 * viene assegnato v_i alla variabile... al termine viene eliminato il livello di scope della variabile
+	 * @param stmt
+	 * @return
+	 */
 	public Value visitForEachStmt(ForEachStmt stmt) {
 		var vector = toVector(stmt.getExp().accept(this));
 		env.enterLevel();
