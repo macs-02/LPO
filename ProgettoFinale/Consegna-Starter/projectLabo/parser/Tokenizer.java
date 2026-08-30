@@ -33,32 +33,22 @@ public class Tokenizer implements TokenizerInterface {
 	static { // initialization of the symbol and keyword tables: symbols and keywords are
 		// singleton lexical categories
 
-		symbols.put("@", CAT); // nuovo simbolo per l'operatore di concatenazione
-		symbols.put("&&", AND); // nuovo simbolo per l'operatore AND
 		symbols.put("=", ASSIGN);
 		symbols.put("}", CLOSE_BLOCK);
 		symbols.put(")", CLOSE_PAR);
-		symbols.put("]", CLOSE_VECT); // nuovo simbolo per la chiusura di un vettore
 		symbols.put("==", EQ);
-		symbols.put("!!", FLATTEN); // nuovo simbolo per l'operatore FLATTEN 
 		symbols.put("-", MINUS);
 		symbols.put("{", OPEN_BLOCK);
 		symbols.put("(", OPEN_PAR);
-		symbols.put("[", OPEN_VECT); // nuovo simbolo per l'apertura di un vettore
 		symbols.put(",", PAIR_OP);
 		symbols.put("+", PLUS);
 		symbols.put(";", STMT_SEP);
 		symbols.put("*", TIMES);
-		symbols.put("++", ZIP); // nuovo simbolo per l'operatore ZIP
-		symbols.put("!", NOT); // nuovo simbolo per l'operatore NOT
 
-		keywords.put("assert", ASSERT); // nuovo keyword per l'istruzione assert
 		keywords.put("else", ELSE);
 		keywords.put("false", BOOL);
-		keywords.put("for", FOR); // nuovo keyword per l'istruzione for
 		keywords.put("fst", FST);
 		keywords.put("if", IF);
-		keywords.put("in", IN); // nuovo keyword per l'istruzione for
 		keywords.put("print", PRINT);
 		keywords.put("snd", SND);
 		keywords.put("true", BOOL);
@@ -132,27 +122,6 @@ public class Tokenizer implements TokenizerInterface {
 				return groupName;
 		throw new AssertionError("Fatal error: could not determine the token type!");
 	}
-
-	// private Token retrievedToken(MatchResult result) throws TokenizerException { // pre-condition: matcher.lookingAt() returned true
-	// 	var tokenString = result.group();
-	// 	var rawType = TokenType.valueOf(retrievedGroupName(result));
-	// 	var tokenType = switch (rawType) {
-	// 	case SYMBOL -> symbols.get(result.group());
-	// 	case KEYWORD -> keywords.get(result.group());
-	// 	default -> rawType;
-	// 	};
-	// 	Integer intValue = null;
-	// 	if (tokenType == NUM) {
-	// 		try {
-	// 			intValue = Integer.parseInt(tokenString, 10);
-	// 		} catch (NumberFormatException e) {
-	// 			throw new TokenizerException(String.format("on line %s: number out of range: %s",
-	// 					reader.getLineNumber(), tokenString));
-	// 		}
-	// 	}
-	// 	var boolValue = tokenType == BOOL ? Boolean.valueOf(tokenString) : null;
-	// 	return new Token(tokenType, tokenString, intValue, boolValue);
-	// }
 
 	private Token retrievedToken(MatchResult result) { // pre-condition: matcher.lookingAt() returned true
 		var tokenString = result.group();

@@ -1,74 +1,22 @@
 package projectLabo.parser;
 
-import static java.util.Objects.requireNonNull;
-import static projectLabo.parser.TokenType.ASSIGN;
-import static projectLabo.parser.TokenType.BOOL;
-import static projectLabo.parser.TokenType.CLOSE_BLOCK;
-import static projectLabo.parser.TokenType.CLOSE_PAR;
-import static projectLabo.parser.TokenType.ELSE;
-import static projectLabo.parser.TokenType.EOF;
-import static projectLabo.parser.TokenType.EQ;
-import static projectLabo.parser.TokenType.FST;
-import static projectLabo.parser.TokenType.IDENT;
-import static projectLabo.parser.TokenType.IF;
-import static projectLabo.parser.TokenType.MINUS;
-import static projectLabo.parser.TokenType.NUM;
-import static projectLabo.parser.TokenType.OPEN_BLOCK;
-import static projectLabo.parser.TokenType.OPEN_PAR;
-import static projectLabo.parser.TokenType.PAIR_OP;
-import static projectLabo.parser.TokenType.PLUS;
-import static projectLabo.parser.TokenType.PRINT;
-import static projectLabo.parser.TokenType.SND;
-import static projectLabo.parser.TokenType.STMT_SEP;
-import static projectLabo.parser.TokenType.TIMES;
-import static projectLabo.parser.TokenType.VAR;
-
 import java.io.IOException;
 
-import projectLabo.parser.ast.Add;
-import projectLabo.parser.ast.And;
-import projectLabo.parser.ast.AssertStmt;
-import projectLabo.parser.ast.AssignStmt;
-import projectLabo.parser.ast.Block;
-import projectLabo.parser.ast.BoolLiteral;
-import projectLabo.parser.ast.Cat;
-import projectLabo.parser.ast.EmptyStmtSeq;
-import projectLabo.parser.ast.Eq;
-import projectLabo.parser.ast.Exp;
-import projectLabo.parser.ast.ExpProg;
-import projectLabo.parser.ast.Flatten;
-import projectLabo.parser.ast.ForEachStmt;
-import projectLabo.parser.ast.Fst;
-import projectLabo.parser.ast.IfStmt;
-import projectLabo.parser.ast.IntLiteral;
-import projectLabo.parser.ast.Minus;
-import projectLabo.parser.ast.Mul;
-import projectLabo.parser.ast.NonEmptyStmtSeq;
-import projectLabo.parser.ast.Not;
-import projectLabo.parser.ast.PairLit;
-import projectLabo.parser.ast.PrintStmt;
-import projectLabo.parser.ast.Prog;
-import projectLabo.parser.ast.Snd;
-import projectLabo.parser.ast.Stmt;
-import projectLabo.parser.ast.StmtSeq;
-import projectLabo.parser.ast.VarStmt;
-import projectLabo.parser.ast.Variable;
-import projectLabo.parser.ast.Vector;
-import projectLabo.parser.ast.Zip;
+import projectLabo.parser.ast.*;
+
+import static java.util.Objects.requireNonNull;
+import static projectLabo.parser.TokenType.*;
 
 /*
 Prog ::= StmtSeq EOF
 StmtSeq ::= Stmt (STMT_SEP StmtSeq)?
-Stmt ::= VAR? IDENT ASSIGN Exp | PRINT Exp | IF OPEN_PAR Exp CLOSE_PAR Block (ELSE Block)? | ASSERT Exp | FOR OPEN_PAR VAR IDENT IN Exp CLOSE_PAR Block
+Stmt ::= VAR IDENT ASSIGN Exp | PRINT Exp | IF OPEN_PAR Exp CLOSE_PAR Block (ELSE Block)? 
 Block ::= OPEN_BLOCK StmtSeq CLOSE_BLOCK
-Exp ::= And (PAIR_OP And)*
-And ::= Eq (AND Eq)* <----- NUOVO
-Eq ::= Zip (EQ Zip)* 
-Zip ::= Add (ZIP Add)* <----- NUOVO
+Exp ::= Eq (PAIR_OP Eq)*
+Eq ::= Add (EQ Add)*
 Add ::= Mul (PLUS Mul)*
-Mul ::= Cat (TIMES Cat)*
-Cat ::= Atom (CAT Atom)* <----- NUOVO
-Atom ::= FST Atom | SND Atom | MINUS Atom | NOT Atom | BOOL | NUM | IDENT | OPEN_PAR Exp CLOSE_PAR | FLATTEN Atom | OPEN_VECT Exp CLOSE_VECT
+Mul::= Atom (TIMES Atom)*
+Atom ::= FST Atom | SND Atom | MINUS Atom | BOOL | NUM | IDENT | OPEN_PAR Exp CLOSE_PAR
 */
 
 public class Parser implements ParserInterface {
@@ -128,7 +76,8 @@ public class Parser implements ParserInterface {
 	/** a parser is autocloseable */
 	@Override
 	public void close() throws IOException {
-		tokenizer.close();
+		if (tokenizer != null)
+			tokenizer.close();
 	}
 
 	/*
@@ -147,19 +96,14 @@ public class Parser implements ParserInterface {
 	}
 
 	/*
-	 * parses a statement Stmt ::= VAR? IDENT ASSIGN Exp | PRINT Exp | IF OPEN_PAR
-	 * Exp CLOSE_PAR Block (ELSE Block)? | ASSERT Exp | FOR OPEN_PAR VAR IDENT IN
-	 * Exp CLOSE_PAR Block
+	 * parses a statement Stmt ::= VAR IDENT ASSIGN Exp | PRINT Exp | IF OPEN_PAR
+	 * Exp CLOSE_PAR Block (ELSE Block)?
 	 */
 	private Stmt parseStmt() throws ParserException {
 		return switch (tokenizer.tokenType()) {
 		case PRINT -> parsePrintStmt();
 		case VAR -> parseVarStmt();
 		case IF -> parseIfStmt();
-		
-		case ASSERT -> parseAssertStmt(); // Nuovo caso per l'assert
-		case FOR -> parseForEachStmt(); // Nuovo caso per il for-each
-		case IDENT -> parseAssignStmt(); // Nuovo caso per l'assegnazione semplice
 		default -> unexpectedTokenError();
 		};
 	}
@@ -180,39 +124,6 @@ public class Parser implements ParserInterface {
 		final var var = parseVariable();
 		consume(ASSIGN);
 		return new VarStmt(var, parseExp());
-	}
-
-	/*
-	 * parses the assert statement Stmt ::= ASSERT Exp
-	 */
-	private AssertStmt parseAssertStmt() throws ParserException {
-		consume(ASSERT);
-		return new AssertStmt(parseExp());
-	}
-
-	/*
-	 * parses the simple assignment statement Stmt ::= IDENT ASSIGN Exp
-	 */
-	private AssignStmt parseAssignStmt() throws ParserException {
-		final var var = parseVariable();
-		consume(ASSIGN);
-		return new AssignStmt(var, parseExp());
-	}
-
-	/*
-	 * parses the for-each statement Stmt ::= FOR OPEN_PAR VAR IDENT IN Exp
-	 * CLOSE_PAR Block
-	 */
-	private ForEachStmt parseForEachStmt() throws ParserException {
-		consume(FOR);
-		consume(OPEN_PAR);
-		consume(VAR);
-		final var var = parseVariable();
-		consume(IN);
-		final var exp = parseExp();
-		consume(CLOSE_PAR);
-		final var block = parseBlock();
-		return new ForEachStmt(var, exp, block);
 	}
 
 	/*
@@ -241,53 +152,27 @@ public class Parser implements ParserInterface {
 
 	/*
 	 * parses expressions, starting from the lowest precedence operator PAIR_OP
-	 * which is left-associative Exp ::= And (PAIR_OP And)*
+	 * which is left-associative Exp ::= Eq (PAIR_OP Eq)*
 	 */
 
 	private Exp parseExp() throws ParserException {
-		var exp = parseAnd();
+		var exp = parseEq();
 		while (tokenizer.tokenType() == PAIR_OP) {
 			tokenizer.next();
-			exp = new PairLit(exp, parseAnd());
-		}
-		return exp;
-	}
-
-	/*
-	 * parses expressions, starting from the lowest precedence operator AND which
-	 * is left-associative And ::= Eq (AND Eq)*
-	 */
-	private Exp parseAnd() throws ParserException {
-		var exp = parseEq();
-		while (tokenizer.tokenType() == AND) {
-			tokenizer.next();
-			exp = new And(exp, parseEq());
+			exp = new PairLit(exp, parseEq());
 		}
 		return exp;
 	}
 
 	/*
 	 * parses expressions, starting from the lowest precedence operator EQ which is
-	 * left-associative Eq ::= Zip (EQ Zip)*
+	 * left-associative Eq ::= Add (EQ Add)*
 	 */
 	private Exp parseEq() throws ParserException {
-		var exp = parseZip();
+		var exp = parseAdd();
 		while (tokenizer.tokenType() == EQ) {
 			tokenizer.next();
-			exp = new Eq(exp, parseZip());
-		}
-		return exp;
-	}
-
-	/*
-	 * parses expressions, starting from the lowest precedence operator ZIP which
-	 * is left-associative Zip ::= Add (ZIP Add)*
-	 */
-	private Exp parseZip() throws ParserException {
-		var exp = parseAdd();
-		while (tokenizer.tokenType() == ZIP) {
-			tokenizer.next();
-			exp = new Zip(exp, parseAdd());
+			exp = new Eq(exp, parseAdd());
 		}
 		return exp;
 	}
@@ -307,47 +192,30 @@ public class Parser implements ParserInterface {
 
 	/*
 	 * parses expressions, starting from the lowest precedence operator TIMES which
-	 * is left-associative Mul ::= Cat (TIMES Cat)*
+	 * is left-associative Mul::= Atom (TIMES Atom)*
 	 */
 	private Exp parseMul() throws ParserException {
-		var exp = parseCat();
+		var exp = parseAtom();
 		while (tokenizer.tokenType() == TIMES) {
 			tokenizer.next();
-			exp = new Mul(exp, parseCat());
-		}
-		return exp;
-	}
-
-	/*
-	 * parses expressions, starting from the lowest precedence operator CAT which
-	 * is left-associative Cat ::= Atom (CAT Atom)*
-	 */
-	private Exp parseCat() throws ParserException {
-		var exp = parseAtom();
-		while (tokenizer.tokenType() == CAT) {
-			tokenizer.next();
-			exp = new Cat(exp, parseAtom());
+			exp = new Mul(exp, parseAtom());
 		}
 		return exp;
 	}
 
 	/*
 	 * parses expressions of type Atom Atom ::= FST Atom | SND Atom | MINUS Atom |
-	 * NOT Atom | BOOL | NUM | IDENT | OPEN_PAR Exp CLOSE_PAR | FLATTEN Atom |
-	 * OPEN_VECT Exp CLOSE_VECT
+	 * BOOL | NUM | IDENT | OPEN_PAR Exp CLOSE_PAR
 	 */
 	private Exp parseAtom() throws ParserException {
 		return switch (tokenizer.tokenType()) {
 		case NUM -> parseNum();
-		case IDENT -> parseVariable(); // nuovo caso per il parsing di variabili
+		case IDENT -> parseVariable();
 		case MINUS -> parseMinus();
-		case NOT -> parseNot(); // nuovo caso per il parsing dell'operatore NOT
 		case OPEN_PAR -> parseRoundPar();
 		case BOOL -> parseBoolean();
 		case FST -> parseFst();
 		case SND -> parseSnd();
-		case FLATTEN -> parseFlatten(); // nuovo caso per il parsing dell'operatore FLATTEN
-		case OPEN_VECT -> parseVector(); // nuovo caso per il parsing del costruttore di vettori
 		default -> unexpectedTokenError();
 		};
 	}
@@ -386,14 +254,6 @@ public class Parser implements ParserInterface {
 	}
 
 	/*
-	 * parses expressions with unary operator NOT Atom ::= NOT Atom
-	 */
-	private Not parseNot() throws ParserException {
-		consume(NOT);
-		return new Not(parseAtom());
-	}
-
-	/*
 	 * parses expressions with unary operator FST Atom ::= FST Atom
 	 */
 	private Fst parseFst() throws ParserException {
@@ -407,25 +267,6 @@ public class Parser implements ParserInterface {
 	private Snd parseSnd() throws ParserException {
 		consume(SND); // can be omitted if the method is only called by parseAtom()
 		return new Snd(parseAtom());
-	}
-
-	/*
-	 * parses expressions with unary operator FLATTEN Atom ::= FLATTEN Atom
-	 */
-	private Flatten parseFlatten() throws ParserException {
-		consume(FLATTEN);
-		return new Flatten(parseAtom());
-	}
-
-	/*
-	 * parses expressions with the singleton vector constructor Atom ::= OPEN_VECT
-	 * Exp CLOSE_VECT
-	 */
-	private Vector parseVector() throws ParserException {
-		consume(OPEN_VECT);
-		final var exp = parseExp();
-		consume(CLOSE_VECT);
-		return new Vector(exp);
 	}
 
 	/*

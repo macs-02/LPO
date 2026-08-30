@@ -1,8 +1,38 @@
 package projectLabo.visitors;
 
-import projectLabo.parser.ast.*;
+import projectLabo.parser.ast.Add;
+import projectLabo.parser.ast.And;
+import projectLabo.parser.ast.AssertStmt;
+import projectLabo.parser.ast.AssignStmt;
+import projectLabo.parser.ast.Block;
+import projectLabo.parser.ast.BoolLiteral;
+import projectLabo.parser.ast.Cat;
+import projectLabo.parser.ast.EmptyStmtSeq;
+import projectLabo.parser.ast.Eq;
+import projectLabo.parser.ast.Exp;
+import projectLabo.parser.ast.ExpProg;
+import projectLabo.parser.ast.Flatten;
+import projectLabo.parser.ast.ForEachStmt;
+import projectLabo.parser.ast.Fst;
+import projectLabo.parser.ast.IfStmt;
+import projectLabo.parser.ast.IntLiteral;
+import projectLabo.parser.ast.Minus;
+import projectLabo.parser.ast.Mul;
+import projectLabo.parser.ast.NonEmptyStmtSeq;
+import projectLabo.parser.ast.Not;
+import projectLabo.parser.ast.PairLit;
+import projectLabo.parser.ast.PrintStmt;
+import projectLabo.parser.ast.Snd;
+import projectLabo.parser.ast.VarStmt;
+import projectLabo.parser.ast.Variable;
+import projectLabo.parser.ast.Vector;
+import projectLabo.parser.ast.Zip;
 import projectLabo.visitors.environment.Environment;
-import projectLabo.visitors.type.*;
+import projectLabo.visitors.type.BoolType;
+import projectLabo.visitors.type.IntType;
+import projectLabo.visitors.type.PairType;
+import projectLabo.visitors.type.StaticType;
+import projectLabo.visitors.type.VectorType;
 
 public class StaticSemanticsVisitor implements Visitor<StaticType> {
 
@@ -46,15 +76,18 @@ public class StaticSemanticsVisitor implements Visitor<StaticType> {
 
 	@Override
 	public StaticType visitVarStmt(VarStmt stmt) {
-		var type = stmt.getExp().accept(this);
-		env.declare(stmt.getVar().getName(), type);
+		// stmt.getExp() non calcola nulla: restituisce semplicemente il riferimento a quel sottoalbero.
+		// getExp() restituirà quindi l'espressione Exp calcolata nel Parser.java
+		// stmt.getExp().accept(this) calcola il tipo dell'espressione e lo assegna a statementType (via il metodo accept che chiama visitXXX corrispondente al tipo di espressione)
+		var statementType = stmt.getExp().accept(this);
+		env.declare(stmt.getVar().getName(), statementType);
 		return null;
 	}
 
 	@Override
 	public StaticType visitAssignStmt(AssignStmt stmt) {
-		var expected = env.lookup(stmt.getVar().getName());
-		checkHasType(expected, stmt.getExp());
+		var expectedType = env.lookup(stmt.getVar().getName());
+		checkHasType(expectedType, stmt.getExp());
 		return null;
 	}
 
@@ -105,6 +138,21 @@ public class StaticSemanticsVisitor implements Visitor<StaticType> {
 	}
 
 	@Override
+	/**
+	 *  il risultato è un vettore di dimensione size2 i cui elementi sono vettori di interi di dimensione size1" (prodotto esterno, per colonne).
+	 *  [1,2,3] * [4,5]  →  [ [4*1, 4*2, 4*3], [5*1, 5*2, 5*3] ] =  [ [4, 8, 12], [5, 10, 15] ]
+	 *  var type1 = exp.getLeft().accept(this);          // ← INT[3]  (VectorType(IntType, 3))
+		if (type1 instanceof IntType) {                  // ← NO, è un vettore
+			...
+		} else if (type1 instanceof VectorType vt && vt.elemType() instanceof IntType) {   // ← SÌ, vt = INT[3]
+			var type2 = exp.getRight().accept(this);     // ← INT[2]  (VectorType(IntType, 2))
+			if (type2 instanceof VectorType vt2 && vt2.elemType() instanceof IntType) {    // ← SÌ
+				return new VectorType(new VectorType(IntType.INSTANCE, vt.size()), vt2.size());
+				//                          ↑ inner = INT[3]                        ↑ outer size = 2
+			}
+	 * @param exp
+	 * @return
+	 */
 	public StaticType visitMul(Mul exp) {
 		var type1 = exp.getLeft().accept(this);
 		if (type1 instanceof IntType) {

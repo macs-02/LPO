@@ -1,0 +1,3 @@
+var x=!x&&
+// stampa
+// Syntax error: on line 3: Unexpected token EOF ('null')
